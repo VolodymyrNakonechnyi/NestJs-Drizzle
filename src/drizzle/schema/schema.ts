@@ -7,13 +7,13 @@ import {
 	bigint,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import * as harvests from './schema/harvest.schema';
-import * as people from './schema/people.schema';
-import * as batches from './schema/batches.schema';
-import * as sales from './schema/sales.schema';
-import * as receivers from './schema/receivers.schema';
-import * as vehicles from './schema/vehicles.schema';
-import * as receoverQuotes from './schema/receiverQuotes.schema';
+import * as harvests from './harvest.schema';
+import * as people from './people.schema';
+import * as batches from './batches.schema';
+import * as sales from './sales.schema';
+import * as receivers from './receivers.schema';
+import * as vehicles from './vehicles.schema';
+import * as receoverQuotes from './receiverQuotes.schema';
 
 export const harvestSummary = pgView('harvest_summary', {
 	harvestDate: date('harvest_date'),
