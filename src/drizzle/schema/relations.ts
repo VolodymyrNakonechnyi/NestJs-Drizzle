@@ -1,11 +1,11 @@
 import { relations } from 'drizzle-orm/relations';
-import { people } from './schema/people.schema';
-import { harvests } from './schema/harvest.schema';
-import { batches } from './schema/batches.schema';
-import { sales } from './schema/sales.schema';
-import { receivers } from './schema/receivers.schema';
-import { vehicles } from './schema/vehicles.schema';
-import { receiverQuotes } from './schema/receiverQuotes.schema';
+import { people } from './people.schema';
+import { harvests } from './harvest.schema';
+import { batches } from './batches.schema';
+import { sales } from './sales.schema';
+import { receivers } from './receivers.schema';
+import { vehicles } from './vehicles.schema';
+import { receiverQuotes } from './receiverQuotes.schema';
 
 export const harvestsRelations = relations(harvests, ({ one }) => ({
 	person: one(people, {

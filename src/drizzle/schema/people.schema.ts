@@ -1,4 +1,10 @@
 import { pgTable, serial, varchar, date } from 'drizzle-orm/pg-core';
+import {
+	createInsertSchema,
+	createSelectSchema,
+	createUpdateSchema,
+} from 'drizzle-zod';
+import z from 'zod';
 import { sql } from 'drizzle-orm';
 
 export const people = pgTable('people', {
@@ -10,3 +16,15 @@ export const people = pgTable('people', {
 		.default(sql`CURRENT_DATE`)
 		.notNull(),
 });
+
+export const personSelectSchema = createSelectSchema(people);
+export type Person = z.infer<typeof personSelectSchema>;
+
+export const personInsertSchema = createInsertSchema(people);
+export type PersonInsert = z.infer<typeof personInsertSchema>;
+
+export const personUpdateSchema = createUpdateSchema(people);
+export type PersonUpdate = z.infer<typeof personUpdateSchema>;
+
+export const personDeleteSchema = personSelectSchema.pick({ id: true });
+export type PersonDelete = z.infer<typeof personDeleteSchema>;
