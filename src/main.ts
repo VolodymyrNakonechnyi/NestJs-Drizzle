@@ -1,11 +1,29 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
-// rewrite this file for fastify in nest js please do not forget to import fastify adapter
-// also set global prefix to apis
+import {
+	FastifyAdapter,
+	NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
-	await app.listen(process.env.PORT ?? 3000);
+	const app = await NestFactory.create<NestFastifyApplication>(
+		AppModule,
+		new FastifyAdapter(),
+	);
+	app.setGlobalPrefix('api/v1');
+	app.enableCors();
+
+	const config = new DocumentBuilder()
+		.setTitle('Malina Corp example')
+		.setDescription('API for Malina Corp')
+		.setVersion('1.0')
+		.build();
+	const documentFactory = () => SwaggerModule.createDocument(app, config);
+	SwaggerModule.setup('api', app, documentFactory);
+	await app.listen(
+		process.env.PORT ? Number(process.env.PORT) : 3000,
+		'0.0.0.0',
+	);
 }
 bootstrap();

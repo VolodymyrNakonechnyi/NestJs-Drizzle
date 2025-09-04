@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DRIZZLE } from 'src/modules/drizzle/drizzle.module';
-import { type DrizzleDB } from 'src/modules/drizzle/types/drizzle';
-import { people } from 'src/modules/drizzle/schema/people.schema';
+import { DRIZZLE } from '../drizzle/drizzle.module';
+import { type DrizzleDB } from '../drizzle/types/drizzle';
+import { people } from '../drizzle/schema/people.schema';
 import { eq } from 'drizzle-orm';
-import { type Person } from 'src/modules/drizzle/schema/people.schema';
+import { type Person } from '../drizzle/schema/people.schema';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 

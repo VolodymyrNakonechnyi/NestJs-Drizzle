@@ -12,6 +12,7 @@ import {
 import { PeopleService } from './people.service';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
+import { IdPersonDto } from './dto/id-person.dto';
 
 @Controller('people')
 export class PeopleController {
@@ -31,19 +32,22 @@ export class PeopleController {
 
 	@Get(':id')
 	@HttpCode(HttpStatus.OK)
-	findOne(@Param('id') id: string) {
-		return this.peopleService.findOne(+id);
+	findOne(@Param() params: IdPersonDto) {
+		return this.peopleService.findOne(params.id);
 	}
 
 	@Patch(':id')
 	@HttpCode(HttpStatus.OK)
-	update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto) {
-		return this.peopleService.update(+id, updatePersonDto);
+	update(
+		@Param() params: IdPersonDto,
+		@Body() updatePersonDto: UpdatePersonDto,
+	) {
+		return this.peopleService.update(params.id, updatePersonDto);
 	}
 
 	@Delete(':id')
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(@Param('id') id: string) {
-		return this.peopleService.remove(+id);
+	remove(@Param() params: IdPersonDto) {
+		return this.peopleService.remove(params.id);
 	}
 }

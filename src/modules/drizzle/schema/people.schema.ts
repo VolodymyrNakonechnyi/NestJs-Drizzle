@@ -17,6 +17,11 @@ export const people = pgTable('people', {
 		.notNull(),
 });
 
+export const personIdSchema = z.object({
+	id: z.coerce.number().int().positive(),
+});
+export type PersonId = z.infer<typeof personIdSchema>;
+
 export const personSelectSchema = createSelectSchema(people);
 export type Person = z.infer<typeof personSelectSchema>;
 
