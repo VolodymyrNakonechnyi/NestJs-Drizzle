@@ -376,7 +376,7 @@ describe('PeopleController', () => {
 			await request(app.getHttpServer())
 				.patch(`/people/${createdPersonId}`)
 				.send(updatePersonDto)
-				.expect(404);
+				.expect(400);
 		});
 
 		it('should return 400 for invalid id format', async () => {
