@@ -3,6 +3,7 @@ import {
 	Injectable,
 	NotFoundException,
 	UnauthorizedException,
+	OnModuleInit,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { type User } from '../users/users.service';
@@ -10,14 +11,22 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { verifyPassword } from '../../common/utils/hash.util';
 import { FastifyReply } from 'fastify';
+import { ESService } from '../crypto/services/es.service';
+import { IKeys } from '../crypto/interfaces/keys.interface';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
+	private KEYS: IKeys;
 	constructor(
 		private usersService: UsersService,
 		private jwtService: JwtService,
 		private configService: ConfigService,
+		private readonly esService: ESService,
 	) {}
+
+	async onModuleInit() {
+		this.KEYS = await this.esService.generateKeys();
+	}
 
 	async validateUser(email: string, pass: string): Promise<any> {
 		const user = await this.usersService.findOneByEmail(email);
@@ -72,7 +81,7 @@ export class AuthService {
 			algorithm: 'ES256',
 			issuer: 'malina-corp',
 			audience: 'malina-corp-users',
-			privateKey: this.configService.get<string>('PRIVATE_KEY'),
+			privateKey: this.KEYS.privateKey,
 		});
 
 		const refreshToken = this.jwtService.sign(payload, {
