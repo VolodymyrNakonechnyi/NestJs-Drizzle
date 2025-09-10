@@ -1,3 +1,4 @@
+import '@fastify/cookie';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
@@ -5,11 +6,19 @@ import {
 	NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import fastifyCookie from '@fastify/cookie';
+import type { FastifyCookieOptions } from '@fastify/cookie';
 
 async function bootstrap() {
+	const fastifyAdapter = new FastifyAdapter();
+
+	fastifyAdapter.register(fastifyCookie, {
+		secret: process.env.COOKIE_SECRET,
+	} as FastifyCookieOptions);
+
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		new FastifyAdapter(),
+		fastifyAdapter,
 	);
 	app.setGlobalPrefix('api/v1');
 	app.enableCors();

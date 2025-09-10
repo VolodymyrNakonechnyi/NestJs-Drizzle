@@ -8,8 +8,7 @@ import { PeopleModule } from './modules/people/people.module';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
 	imports: [
@@ -20,15 +19,15 @@ import { AuthService } from './auth/auth.service';
 		DrizzleModule,
 		PeopleModule,
 		AuthModule,
+		UsersModule,
 	],
-	controllers: [AppController, AuthController],
+	controllers: [AppController],
 	providers: [
 		AppService,
 		{
 			provide: APP_PIPE,
 			useClass: ZodValidationPipe,
 		},
-		AuthService,
 	],
 })
 export class AppModule {}

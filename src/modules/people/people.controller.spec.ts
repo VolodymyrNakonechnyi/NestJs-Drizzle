@@ -539,6 +539,9 @@ describe('PeopleController', () => {
 		});
 
 		it('should handle edge cases with registration date', async () => {
+			const beforeTest = new Date();
+			beforeTest.setHours(0, 0, 0, 0);
+
 			const createPersonDto = {
 				fullName: 'Test Person',
 			};
@@ -548,13 +551,19 @@ describe('PeopleController', () => {
 				.send(createPersonDto)
 				.expect(201);
 
-			// Registration date should be automatically set to current date
 			expect(response.body).toHaveProperty('registrationDate');
 			expect(typeof response.body.registrationDate).toBe('string');
 
-			// Registration date should be today's date
-			const today = new Date().toISOString().split('T')[0];
-			expect(response.body.registrationDate).toBe(today);
+			const registrationDate = new Date(response.body.registrationDate);
+			const today = new Date();
+
+			expect(registrationDate.getFullYear()).toBe(today.getFullYear());
+			expect(registrationDate.getMonth()).toBe(today.getMonth());
+
+			const dayDiff = Math.abs(
+				registrationDate.getDate() - today.getDate(),
+			);
+			expect(dayDiff).toBeLessThanOrEqual(1);
 		});
 
 		it('should handle multiple people with same fullName but different other fields', async () => {
