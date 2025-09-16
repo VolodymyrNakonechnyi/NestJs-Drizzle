@@ -13,6 +13,7 @@ import { verifyPassword } from '../../common/utils/hash.util';
 import { FastifyReply } from 'fastify';
 import { ESService } from '../crypto/services/es.service';
 import { IKeys } from '../crypto/interfaces/keys.interface';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -26,6 +27,10 @@ export class AuthService implements OnModuleInit {
 
 	async onModuleInit() {
 		this.KEYS = await this.esService.generateKeys();
+	}
+
+	async register(createUser: CreateUserDto) {
+		return await this.usersService.createUser(createUser);
 	}
 
 	async validateUser(email: string, pass: string): Promise<any> {
@@ -77,7 +82,7 @@ export class AuthService implements OnModuleInit {
 		const payload = { username: user.username, sub: user.userId };
 
 		const accessToken = this.jwtService.sign(payload, {
-			expiresIn: `${this.configService.get<string>('JWT_EXPIRATION_ACCESS')}ms`,
+			expiresIn: `${parseInt(this.configService.getOrThrow<string>('JWT_EXPIRATION_ACCESS_MS')) / 1000}s`,
 			algorithm: 'ES256',
 			issuer: 'malina-corp',
 			audience: 'malina-corp-users',
@@ -85,7 +90,7 @@ export class AuthService implements OnModuleInit {
 		});
 
 		const refreshToken = this.jwtService.sign(payload, {
-			expiresIn: `${this.configService.get<string>('JWT_EXPIRATION_REFRESH_MS')}ms`,
+			expiresIn: `${parseInt(this.configService.getOrThrow<string>('JWT_EXPIRATION_REFRESH_MS')) / 1000}s`,
 			algorithm: 'HS256',
 			issuer: 'malina-corp',
 			audience: 'malina-corp-users',
@@ -117,21 +122,48 @@ export class AuthService implements OnModuleInit {
 				issuer: 'malina-corp',
 				audience: 'malina-corp-users',
 			});
-			const user = await this.usersService.findOneByEmail(
-				decoded.username,
-			);
-			if (decoded.expiresIn < Date.now()) {
-				throw new NotFoundException('Refresh token expired');
+
+			const currentTime = Math.floor(Date.now() / 1000);
+			if (decoded.exp < currentTime) {
+				throw new UnauthorizedException('Refresh token expired');
 			}
+
+			const user = await this.usersService.findOneByEmail(
+				decoded.email || decoded.username,
+			);
 
 			if (!user) {
 				throw new NotFoundException('User not found');
 			}
 
-			return this.login(user, reply);
+			return this.login(user, reply, false);
 		} catch (e) {
-			throw new NotFoundException('Invalid refresh token');
+			if (
+				e instanceof UnauthorizedException ||
+				e instanceof NotFoundException
+			) {
+				throw e;
+			}
+			throw new UnauthorizedException('Invalid refresh token');
 		}
+	}
+
+	async validateRefreshToken(userId: string, token: string): Promise<User> {
+		const user = await this.usersService.getUserById(userId);
+
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		const verify = await this.jwtService.verifyAsync(token, {
+			secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
+		});
+
+		if (!verify) {
+			throw new UnauthorizedException('Token is not valid');
+		}
+
+		return user;
 	}
 
 	async logout(userId: number) {

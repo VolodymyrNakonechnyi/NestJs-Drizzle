@@ -21,7 +21,6 @@ async function bootstrap() {
 		fastifyAdapter,
 	);
 	app.setGlobalPrefix('api/v1');
-	app.enableCors();
 
 	const config = new DocumentBuilder()
 		.setTitle('Malina Corp example')

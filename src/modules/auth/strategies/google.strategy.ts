@@ -1,0 +1,33 @@
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy } from 'passport-google-oauth20';
+import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../../../modules/users/users.service';
+import { type CreateUserDto } from 'src/modules/users/dto/create-user.dto';
+
+export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly usersService: UsersService,
+	) {
+		super({
+			clientID: configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
+			clientSecret: configService.getOrThrow<string>(
+				'GOOGLE_CLIENT_SECRET',
+			),
+			callbackURL: configService.getOrThrow<string>(
+				'GOOGLE_AUTH_REDIRECT_URI',
+			),
+			scope: ['email', 'profile'],
+		});
+	}
+
+	async validate(_accessToken: string, _refreshToken: string, profile: any) {
+		const newUser = await this.usersService.createUser({
+			username: profile.displayName,
+			email: profile.emails[0].value,
+			password: Math.random().toString(36).slice(-8),
+		} as CreateUserDto);
+
+		return newUser;
+	}
+}

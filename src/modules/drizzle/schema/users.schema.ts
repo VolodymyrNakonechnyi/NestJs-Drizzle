@@ -21,11 +21,31 @@ export const users = pgTable('users', {
 		.notNull(),
 });
 
-export const userSelectSchema = createSelectSchema(users);
+export const userSelectSchema = createSelectSchema(users, {
+	createdAt: z.string(),
+	updatedAt: z.string(),
+}).omit({
+	password: true,
+});
 export type User = z.infer<typeof userSelectSchema>;
 
-export const userInsertSchema = createInsertSchema(users);
+export const userInsertSchema = createInsertSchema(users, {
+	createdAt: z.string().optional(),
+	updatedAt: z.string().optional(),
+}).omit({
+	userId: true,
+	createdAt: true,
+	updatedAt: true,
+});
 export type UserInsert = z.infer<typeof userInsertSchema>;
 
-export const userUpdateSchema = createUpdateSchema(users);
+export const userUpdateSchema = createUpdateSchema(users, {
+	createdAt: z.string().optional(),
+	updatedAt: z.string().optional(),
+})
+	.omit({
+		userId: true,
+		createdAt: true,
+	})
+	.partial();
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
