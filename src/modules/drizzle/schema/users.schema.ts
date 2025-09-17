@@ -1,21 +1,29 @@
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	timestamp,
+	uuid,
+	varchar,
+	boolean,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
 } from 'drizzle-zod';
-import z from 'zod';
+import { z } from 'zod';
 
 export const users = pgTable('users', {
 	userId: uuid('user_id').primaryKey().defaultRandom().notNull(),
-	username: varchar({ length: 30 }).notNull().unique(),
-	password: varchar({ length: 255 }).notNull(),
-	firstName: varchar({ length: 30 }),
-	lastName: varchar({ length: 30 }),
-	picture: varchar({ length: 255 }),
-	email: varchar({ length: 255 }).notNull().unique(),
-	phoneNumber: varchar({ length: 15 }).unique(),
+	username: varchar('username', { length: 30 }).notNull().unique(),
+	password: varchar('password', { length: 255 }).notNull(),
+	firstName: varchar('first_name', { length: 30 }),
+	lastName: varchar('last_name', { length: 30 }),
+	picture: varchar('picture', { length: 255 }),
+	email: varchar('email', { length: 255 }).notNull().unique(),
+	phoneNumber: varchar('phone_number', { length: 15 }).unique(),
+	verifiedEmail: boolean('verified_email').default(false).notNull(),
+	verifiedPhone: boolean('verified_phone').default(false).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true })
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
@@ -24,12 +32,7 @@ export const users = pgTable('users', {
 		.notNull(),
 });
 
-export const userSelectSchema = createSelectSchema(users, {
-	createdAt: z.string(),
-	updatedAt: z.string(),
-}).omit({
-	password: true,
-});
+export const userSelectSchema = createSelectSchema(users);
 export type User = z.infer<typeof userSelectSchema>;
 
 export const userInsertSchema = createInsertSchema(users, {
@@ -39,6 +42,8 @@ export const userInsertSchema = createInsertSchema(users, {
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
+	verifiedEmail: true,
+	verifiedPhone: true,
 });
 export type UserInsert = z.infer<typeof userInsertSchema>;
 
@@ -49,6 +54,9 @@ export const userUpdateSchema = createUpdateSchema(users, {
 	.omit({
 		userId: true,
 		createdAt: true,
+		updatedAt: true,
+		verifiedEmail: true,
+		verifiedPhone: true,
 	})
 	.partial();
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
