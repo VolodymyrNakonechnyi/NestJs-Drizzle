@@ -28,8 +28,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
 	async validate(request: FastifyRequest, payload: TokenPayload) {
 		return this.authService.validateRefreshToken(
-			request.cookies?.Refresh as string,
 			payload.sub,
+			request.cookies?.Refresh as string,
 		);
 	}
 }
