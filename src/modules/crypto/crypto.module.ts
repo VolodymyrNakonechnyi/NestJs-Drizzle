@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CryptoService } from './crypto.service';
-import { ESService } from './services/es.service';
+import { KeysService } from './services/keys.service';
 
 @Module({
-	providers: [CryptoService, ESService],
-	exports: [ESService],
+	controllers: [],
+	providers: [KeysService],
+	exports: [KeysService],
 })
 export class CryptoModule {}

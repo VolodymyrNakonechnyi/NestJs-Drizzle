@@ -4,14 +4,16 @@ import { AuthService } from '../auth.service';
 import { ConfigService } from '@nestjs/config';
 import { FastifyRequest } from 'fastify';
 import { TokenPayload } from '../token-payload.interface';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
 	Strategy,
 	'jwt-refresh',
 ) {
 	constructor(
-		private readonly authService: AuthService,
 		configService: ConfigService,
+		private readonly authService: AuthService,
 	) {
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([

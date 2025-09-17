@@ -3,10 +3,12 @@ import { Strategy } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../../modules/users/users.service';
 import { type CreateUserDto } from 'src/modules/users/dto/create-user.dto';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 	constructor(
-		private readonly configService: ConfigService,
+		configService: ConfigService,
 		private readonly usersService: UsersService,
 	) {
 		super({

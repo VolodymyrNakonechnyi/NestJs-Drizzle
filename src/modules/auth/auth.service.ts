@@ -3,7 +3,6 @@ import {
 	Injectable,
 	NotFoundException,
 	UnauthorizedException,
-	OnModuleInit,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { type User } from '../users/users.service';
@@ -11,23 +10,17 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { verifyPassword } from '../../common/utils/hash.util';
 import { FastifyReply } from 'fastify';
-import { ESService } from '../crypto/services/es.service';
-import { IKeys } from '../crypto/interfaces/keys.interface';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { KeysService } from '../crypto/services/keys.service';
 
 @Injectable()
-export class AuthService implements OnModuleInit {
-	public KEYS: IKeys;
+export class AuthService {
 	constructor(
 		private usersService: UsersService,
 		private jwtService: JwtService,
 		private configService: ConfigService,
-		private readonly esService: ESService,
+		private keysService: KeysService,
 	) {}
-
-	async onModuleInit() {
-		this.KEYS = await this.esService.generateKeys();
-	}
 
 	async register(createUser: CreateUserDto) {
 		return await this.usersService.createUser(createUser);
@@ -83,7 +76,7 @@ export class AuthService implements OnModuleInit {
 			algorithm: 'ES256',
 			issuer: 'malina-corp',
 			audience: 'malina-corp-users',
-			privateKey: this.KEYS.privateKey,
+			privateKey: this.keysService.getKeysSync().privateKey,
 		});
 
 		const refreshToken = this.jwtService.sign(payload, {
