@@ -17,7 +17,7 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
-	private KEYS: IKeys;
+	public KEYS: IKeys;
 	constructor(
 		private usersService: UsersService,
 		private jwtService: JwtService,
@@ -35,15 +35,6 @@ export class AuthService implements OnModuleInit {
 
 	async validateUser(email: string, pass: string): Promise<any> {
 		const user = await this.usersService.findOneByEmail(email);
-		if (user && user.password === pass) {
-			const { password, ...result } = user;
-			return result;
-		}
-		return null;
-	}
-
-	async verifyUser(email: string, pass: string): Promise<User> {
-		const user = await this.usersService.findOneByEmail(email);
 
 		if (!user) {
 			throw new NotFoundException('User not found');
@@ -52,10 +43,12 @@ export class AuthService implements OnModuleInit {
 		const authenticated = await verifyPassword(pass, user.password);
 
 		if (!authenticated) {
-			throw new UnauthorizedException();
+			throw new UnauthorizedException('Invalid credentials');
 		}
 
-		return user;
+		const { password, ...result } = user;
+
+		return result;
 	}
 
 	async login(user: User, reply: FastifyReply, redirect = false) {
@@ -79,7 +72,11 @@ export class AuthService implements OnModuleInit {
 				),
 		);
 
-		const payload = { username: user.username, sub: user.userId };
+		const payload = {
+			username: user.username,
+			email: user.email,
+			sub: user.userId,
+		};
 
 		const accessToken = this.jwtService.sign(payload, {
 			expiresIn: `${parseInt(this.configService.getOrThrow<string>('JWT_EXPIRATION_ACCESS_MS')) / 1000}s`,

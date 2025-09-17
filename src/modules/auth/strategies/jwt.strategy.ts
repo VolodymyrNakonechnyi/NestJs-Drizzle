@@ -5,19 +5,20 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from 'src/modules/users/users.service';
 import { TokenPayload } from '../token-payload.interface';
 import { FastifyRequest } from 'fastify';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 	constructor(
-		configService: ConfigService,
 		private readonly usersService: UsersService,
+		config: ConfigService,
 	) {
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: FastifyRequest) =>
 					request.cookies?.Authenfication as string,
 			]),
-			secretOrKey: configService.getOrThrow('PRIVATE_KEY'),
+			secretOrKey: config.getOrThrow<string>('JWT_ACCESS_TOKEN_SECRET'),
 		});
 	}
 
