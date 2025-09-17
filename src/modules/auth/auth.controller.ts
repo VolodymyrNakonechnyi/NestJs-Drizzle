@@ -6,6 +6,7 @@ import {
 	Body,
 	HttpCode,
 	HttpStatus,
+	Get,
 } from '@nestjs/common';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './current.user.decorator';
@@ -14,6 +15,7 @@ import { type FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -53,6 +55,19 @@ export class AuthController {
 	@UseGuards(JwtRefreshAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async refresh(
+		@CurrentUser() user: User,
+		@Res({ passthrough: true }) reply: FastifyReply,
+	) {
+		await this.authService.login(user, reply);
+	}
+
+	@Get('google')
+	@UseGuards(GoogleAuthGuard)
+	googleAuth() {}
+
+	@Get('google/callback')
+	@UseGuards(GoogleAuthGuard)
+	async googleCallback(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
 	) {
