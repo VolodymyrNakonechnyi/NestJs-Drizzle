@@ -6,13 +6,16 @@ import {
 	createUpdateSchema,
 } from 'drizzle-zod';
 import z from 'zod';
-import { createZodDto } from 'nestjs-zod';
 
 export const users = pgTable('users', {
 	userId: uuid('user_id').primaryKey().defaultRandom().notNull(),
 	username: varchar({ length: 30 }).notNull().unique(),
 	password: varchar({ length: 255 }).notNull(),
+	firstName: varchar({ length: 30 }),
+	lastName: varchar({ length: 30 }),
+	picture: varchar({ length: 255 }),
 	email: varchar({ length: 255 }).notNull().unique(),
+	phoneNumber: varchar({ length: 15 }).unique(),
 	createdAt: timestamp('created_at', { withTimezone: true })
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
