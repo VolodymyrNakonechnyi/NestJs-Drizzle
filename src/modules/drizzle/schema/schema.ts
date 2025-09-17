@@ -14,6 +14,7 @@ import * as sales from './sales.schema';
 import * as receivers from './receivers.schema';
 import * as vehicles from './vehicles.schema';
 import * as receoverQuotes from './receiverQuotes.schema';
+import * as users from './users.schema';
 
 export const harvestSummary = pgView('harvest_summary', {
 	harvestDate: date('harvest_date'),

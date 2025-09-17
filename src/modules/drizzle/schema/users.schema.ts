@@ -24,12 +24,18 @@ export const users = pgTable('users', {
 	phoneNumber: varchar('phone_number', { length: 15 }).unique(),
 	verifiedEmail: boolean('verified_email').default(false).notNull(),
 	verifiedPhone: boolean('verified_phone').default(false).notNull(),
+	lastPasswordChange: timestamp('last_password_change', {
+		withTimezone: true,
+	})
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true })
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true })
 		.default(sql`CURRENT_TIMESTAMP`)
-		.notNull(),
+		.notNull()
+		.$onUpdate(() => new Date()),
 });
 
 export const userSelectSchema = createSelectSchema(users);
