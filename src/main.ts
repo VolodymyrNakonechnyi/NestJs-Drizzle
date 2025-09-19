@@ -12,9 +12,12 @@ import type { FastifyCookieOptions } from '@fastify/cookie';
 async function bootstrap() {
 	const fastifyAdapter = new FastifyAdapter();
 
-	fastifyAdapter.register(fastifyCookie, {
-		secret: process.env.COOKIE_SECRET,
-	} as FastifyCookieOptions);
+	fastifyAdapter.register(
+		fastifyCookie as any,
+		{
+			secret: process.env.COOKIE_SECRET,
+		} as FastifyCookieOptions,
+	);
 
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
