@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../app.module';
-import { DRIZZLE } from '../drizzle/drizzle.module';
-import { DrizzleDB } from '../drizzle/types/drizzle';
-import { people } from '../drizzle/schema/people.schema';
+import { DRIZZLE } from '../../drizzle/drizzle.module';
+import { DrizzleDB } from '../../drizzle/types/drizzle';
+import { people } from '../../drizzle/schema/people.schema';
 
 describe('PeopleController', () => {
 	let app: INestApplication;

@@ -1,7 +1,7 @@
 {
 	"dialect": "postgresql",
-	"schema": "./src/modules/drizzle/schema/schema.ts",
-	"out": "./src/modules/drizzle/migrations",
+	"schema": "./src/drizzle/schema/schema.ts",
+	"out": "./src/drizzle/migrations",
 	"dbCredentials": {
 		"url": "postgres://postgres:postgres@localhost:5432/Malina_CORP_FOR_FUN"
 	}

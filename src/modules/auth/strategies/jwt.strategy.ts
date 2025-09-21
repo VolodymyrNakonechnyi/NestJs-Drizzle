@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from 'src/modules/users/users.service';
 import { TokenPayload } from '../token-payload.interface';
 import { FastifyRequest } from 'fastify';
-import { KeysService } from '../../../modules/crypto/services/keys.service';
+import { KeysService } from '../../../shared/crypto/services/keys.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {

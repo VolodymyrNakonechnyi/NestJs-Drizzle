@@ -6,7 +6,7 @@ import {
 import { PeopleRepository } from './people.repository';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
-import { type Person } from 'src/modules/drizzle/schema/people.schema';
+import { type Person } from 'src/drizzle/schema/people.schema';
 import {
 	PersonNotFoundException,
 	PersonAlreadyExistsException,

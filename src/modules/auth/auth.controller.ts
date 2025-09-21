@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './current.user.decorator';
-import { type User } from '../drizzle/schema/users.schema';
+import { type User } from '../../drizzle/schema/users.schema';
 import { type FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';

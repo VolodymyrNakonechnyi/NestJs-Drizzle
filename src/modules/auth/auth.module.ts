@@ -6,7 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
-import { CryptoModule } from '../crypto/crypto.module';
+import { CryptoModule } from '../../shared/crypto/crypto.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { DrizzleModule } from '../../modules/drizzle/drizzle.module';
+import { DrizzleModule } from '../../drizzle/drizzle.module';
 import { UsersRepository } from './users.repository';
-import { CryptoModule } from '../crypto/crypto.module';
+import { CryptoModule } from '../../shared/crypto/crypto.module';
 
 @Module({
 	imports: [DrizzleModule, CryptoModule],

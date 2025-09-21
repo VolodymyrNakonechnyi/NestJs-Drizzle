@@ -3,13 +3,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HarvestModule } from './modules/harvest/harvest.module';
 import { ConfigModule } from '@nestjs/config';
-import { DrizzleModule } from './modules/drizzle/drizzle.module';
+import { DrizzleModule } from './drizzle/drizzle.module';
 import { PeopleModule } from './modules/people/people.module';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { CryptoModule } from './modules/crypto/crypto.module';
+import { CryptoModule } from './shared/crypto/crypto.module';
 import { HttpExceptionFilter } from './common/filters/exception-filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 

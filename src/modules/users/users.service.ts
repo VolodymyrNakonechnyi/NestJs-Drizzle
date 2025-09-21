@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersRepository } from './users.repository';
-import { User } from '../drizzle/schema/users.schema';
+import { User } from '../../drizzle/schema/users.schema';
 import { UUID } from 'crypto';
-import { HashingService } from '../crypto/services/hashing.service';
+import { HashingService } from '../../shared/crypto/services/hashing.service';
 
 @Injectable()
 export class UsersService {

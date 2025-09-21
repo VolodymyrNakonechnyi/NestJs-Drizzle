@@ -1,4 +1,4 @@
-import { type User } from '../../drizzle/schema/users.schema';
+import { type User } from '../../../drizzle/schema/users.schema';
 
 export interface PublicUserData {
 	userId: string;

@@ -5,14 +5,14 @@ import {
 	UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { type User } from '../drizzle/schema/users.schema';
+import { type User } from '../../drizzle/schema/users.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { FastifyReply } from 'fastify';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { KeysService } from '../crypto/services/keys.service';
+import { KeysService } from '../../shared/crypto/services/keys.service';
 import { UUID } from 'crypto';
-import { HashingService } from '../crypto/services/hashing.service';
+import { HashingService } from '../../shared/crypto/services/hashing.service';
 
 @Injectable()
 export class AuthService {
