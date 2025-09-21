@@ -38,31 +38,39 @@ export const users = pgTable('users', {
 		.$onUpdate(() => new Date()),
 });
 
-export const userSelectSchema = createSelectSchema(users);
+export type UserDB = typeof users.$inferSelect;
+
+export const userSelectSchema = createSelectSchema(users, {
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	lastPasswordChange: z.date(),
+});
 export type User = z.infer<typeof userSelectSchema>;
 
 export const userInsertSchema = createInsertSchema(users, {
-	createdAt: z.string().optional(),
-	updatedAt: z.string().optional(),
+	lastPasswordChange: z.date().optional(),
 }).omit({
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
+	lastPasswordChange: true,
 	verifiedEmail: true,
 	verifiedPhone: true,
 });
 export type UserInsert = z.infer<typeof userInsertSchema>;
 
 export const userUpdateSchema = createUpdateSchema(users, {
-	createdAt: z.string().optional(),
-	updatedAt: z.string().optional(),
+	lastPasswordChange: z.date().optional(),
 })
 	.omit({
 		userId: true,
 		createdAt: true,
 		updatedAt: true,
+		lastPasswordChange: true,
 		verifiedEmail: true,
 		verifiedPhone: true,
 	})
 	.partial();
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
+
+export const userIdSchema = userSelectSchema.pick({ userId: true });

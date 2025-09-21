@@ -2,9 +2,11 @@ import { Injectable, Inject } from '@nestjs/common';
 import { type DrizzleDB } from '../drizzle/types/drizzle';
 import { DRIZZLE } from '../drizzle/drizzle.module';
 import { UUID } from 'crypto';
-import { UserInsert, users, UserUpdate } from '../drizzle/schema/users.schema';
 import { eq } from 'drizzle-orm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '../drizzle/schema/users.schema';
+import { users } from '../drizzle/schema/users.schema';
 
 @Injectable()
 export class UsersRepository {
@@ -38,7 +40,7 @@ export class UsersRepository {
 		return person || null;
 	}
 
-	async create(user: UserInsert): Promise<User> {
+	async create(user: CreateUserDto): Promise<User> {
 		const [newUser] = await this.db
 			.insert(users)
 			.values({
@@ -48,7 +50,7 @@ export class UsersRepository {
 		return newUser;
 	}
 
-	async update(userId: UUID, user: UserUpdate): Promise<User> {
+	async update(userId: UUID, user: UpdateUserDto): Promise<User> {
 		const [updatedUser] = await this.db
 			.update(users)
 			.set({

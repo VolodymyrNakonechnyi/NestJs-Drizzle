@@ -28,6 +28,7 @@ import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { MapResponseUser } from '../users/decorators/user-mapper.decorator';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -39,6 +40,69 @@ export class AuthController {
 	@ApiOperation({ summary: 'Register new user' })
 	@ApiCreatedResponse({ description: 'User successfully registered' })
 	@ApiBadRequestResponse({ description: 'Invalid registration data' })
+	@ApiOperation({
+		summary: 'Register new user',
+		description: 'Create a new user account and automatically log them in',
+	})
+	@ApiBody({
+		type: CreateUserDto,
+		description: 'User registration data',
+	})
+	@ApiCreatedResponse({
+		description: 'User successfully registered and logged in',
+		schema: {
+			type: 'object',
+			properties: {
+				message: {
+					type: 'string',
+					example: "User 'johndoe' registered successfully",
+				},
+				data: {
+					type: 'object',
+					properties: {
+						user: {
+							type: 'object',
+							properties: {
+								userId: { type: 'string', format: 'uuid' },
+								username: { type: 'string' },
+								email: { type: 'string', format: 'email' },
+								firstName: { type: 'string', nullable: true },
+								lastName: { type: 'string', nullable: true },
+								picture: { type: 'string', nullable: true },
+								phoneNumber: { type: 'string', nullable: true },
+								verifiedEmail: { type: 'boolean' },
+								verifiedPhone: { type: 'boolean' },
+								createdAt: {
+									type: 'string',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid registration data - validation errors',
+		schema: {
+			type: 'object',
+			properties: {
+				statusCode: { type: 'number', example: 400 },
+				message: {
+					oneOf: [
+						{ type: 'string' },
+						{ type: 'array', items: { type: 'string' } },
+					],
+					example: [
+						'email must be a valid email',
+						'password is too weak',
+					],
+				},
+				error: { type: 'string', example: 'Bad Request' },
+			},
+		},
+	})
+	@MapResponseUser()
 	async register(
 		@Body() createUserDto: CreateUserDto,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -49,11 +113,7 @@ export class AuthController {
 		return {
 			message: `User '${user.username}' registered successfully`,
 			data: {
-				user: {
-					userId: user.userId,
-					username: user.username,
-					email: user.email,
-				},
+				user: user,
 			},
 		};
 	}
@@ -83,6 +143,7 @@ export class AuthController {
 			required: ['email', 'password'],
 		},
 	})
+	@MapResponseUser()
 	async login(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -92,11 +153,7 @@ export class AuthController {
 		return {
 			message: 'Login successful',
 			data: {
-				user: {
-					userId: user.userId,
-					username: user.username,
-					email: user.email,
-				},
+				user: user,
 			},
 		};
 	}
@@ -113,6 +170,7 @@ export class AuthController {
 		description: 'Tokens refreshed successfully. New tokens set in cookies',
 	})
 	@ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
+	@MapResponseUser()
 	async refresh(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -122,11 +180,7 @@ export class AuthController {
 		return {
 			message: 'Tokens refreshed successfully',
 			data: {
-				user: {
-					userId: user.userId,
-					username: user.username,
-					email: user.email,
-				},
+				user: user,
 			},
 		};
 	}
@@ -165,6 +219,7 @@ export class AuthController {
 		description: 'Google authentication successful. Tokens set in cookies',
 	})
 	@ApiUnauthorizedResponse({ description: 'Google authentication error' })
+	@MapResponseUser()
 	async googleCallback(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -174,11 +229,7 @@ export class AuthController {
 		return {
 			message: 'Google authentication successful',
 			data: {
-				user: {
-					userId: user.userId,
-					username: user.username,
-					email: user.email,
-				},
+				user: user,
 			},
 		};
 	}
@@ -192,15 +243,12 @@ export class AuthController {
 	})
 	@ApiOkResponse({ description: 'User information' })
 	@ApiUnauthorizedResponse({ description: 'User not authenticated' })
+	@MapResponseUser()
 	async getMe(@CurrentUser() user: User) {
 		return {
 			message: 'User data retrieved successfully',
 			data: {
-				user: {
-					userId: user.userId,
-					username: user.username,
-					email: user.email,
-				},
+				user: user,
 			},
 		};
 	}

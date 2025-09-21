@@ -1,13 +1,8 @@
 {
 	"dialect": "postgresql",
-	"schema": "./src/drizzle/schema",
-	"out": "./src/drizzle",
+	"schema": "./src/modules/drizzle/schema/schema.ts",
+	"out": "./src/modules/drizzle/migrations",
 	"dbCredentials": {
-		"host": "localhost",
-		"port": 5432,
-		"user": "postgres",
-		"password": "postgres",
-		"database": "Malina_CORP_FOR_FUN",
-		"ssl": false
+		"url": "postgres://postgres:postgres@localhost:5432/Malina_CORP_FOR_FUN"
 	}
 }

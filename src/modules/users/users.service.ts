@@ -5,30 +5,13 @@ import {
 } from '@nestjs/common';
 import { hashPassword } from '../../common/utils/hash.util';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Logger } from '@nestjs/common';
-
-export type User = any;
+import { UsersRepository } from './users.repository';
+import { User } from '../drizzle/schema/users.schema';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
-	private users = [
-		{
-			userId: 1,
-			username: 'john',
-			password: 'changeme',
-			email: 'john@mail.com',
-		},
-		{
-			userId: 2,
-			username: 'maria',
-			password: 'guess',
-			email: 'maria.mail.com',
-		},
-	];
-
-	private readonly logger = new Logger(UsersService.name);
-
-	private readonly rand = Math.random();
+	constructor(private readonly usersRepository: UsersRepository) {}
 
 	async createUser(createUser: CreateUserDto): Promise<User> {
 		const existingUserByEmail = await this.findOneByEmail(createUser.email);
@@ -43,36 +26,71 @@ export class UsersService {
 			throw new ConflictException('User with this username exists');
 		}
 
-		this.logger.log(`Creating user: ${createUser.username}`);
+		const hashedPassword = await hashPassword(createUser.password);
 
-		const newUser = {
+		const newUser = await this.usersRepository.create({
 			...createUser,
-			userId: this.users.length + 1,
-			password: await hashPassword(createUser.password),
-		};
-
-		this.users.push(newUser);
-		this.logger.log(`UsersService instance ID: ${this.rand}`);
-		this.logger.log(JSON.stringify(this.users));
+			password: hashedPassword,
+		});
 
 		return newUser;
 	}
 
-	async findOneByEmail(email: string): Promise<User | undefined> {
-		return this.users.find((user) => user.email === email);
+	async findOneByEmail(email: string): Promise<User | null> {
+		return this.usersRepository.findByEmail(email);
 	}
 
-	async findOneByUsername(username: string): Promise<User | undefined> {
-		return this.users.find((user) => user.username === username);
+	async findOneByUsername(username: string): Promise<User | null> {
+		return this.usersRepository.findByUsername(username);
 	}
 
-	async getUsers() {
-		this.logger.log(`UsersService instance ID: ${this.rand}`);
-
-		return this.users;
+	async getUserById(id: UUID): Promise<User | null> {
+		return this.usersRepository.findById(id);
 	}
 
-	async getUserById(id: string) {
-		return this.users.find((user) => user.userId === +id);
+	async updateUser(userId: UUID, updateData: Partial<User>): Promise<User> {
+		const existingUser = await this.usersRepository.findById(userId);
+		if (!existingUser) {
+			throw new NotFoundException('User not found');
+		}
+
+		return this.usersRepository.update(userId, updateData);
+	}
+
+	async deleteUser(userId: UUID): Promise<void> {
+		const existingUser = await this.usersRepository.findById(userId);
+		if (!existingUser) {
+			throw new NotFoundException('User not found');
+		}
+
+		await this.usersRepository.delete(userId);
+	}
+
+	async verifyUserEmail(userId: UUID): Promise<User> {
+		const existingUser = await this.usersRepository.findById(userId);
+		if (!existingUser) {
+			throw new NotFoundException('User not found');
+		}
+
+		return this.usersRepository.verifyEmail(userId);
+	}
+
+	async verifyUserPhone(userId: UUID): Promise<User> {
+		const existingUser = await this.usersRepository.findById(userId);
+		if (!existingUser) {
+			throw new NotFoundException('User not found');
+		}
+
+		return this.usersRepository.verifyPhone(userId);
+	}
+
+	async changePassword(userId: UUID, newPassword: string): Promise<User> {
+		const existingUser = await this.usersRepository.findById(userId);
+		if (!existingUser) {
+			throw new NotFoundException('User not found');
+		}
+
+		const hashedPassword = await hashPassword(newPassword);
+		return this.usersRepository.setPassword(userId, hashedPassword);
 	}
 }

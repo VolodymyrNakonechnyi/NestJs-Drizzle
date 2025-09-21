@@ -5,13 +5,14 @@ import {
 	UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { type User } from '../users/users.service';
+import { type User } from '../drizzle/schema/users.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { verifyPassword } from '../../common/utils/hash.util';
 import { FastifyReply } from 'fastify';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { KeysService } from '../crypto/services/keys.service';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -138,7 +139,7 @@ export class AuthService {
 		}
 	}
 
-	async validateRefreshToken(userId: string, token: string): Promise<User> {
+	async validateRefreshToken(userId: UUID, token: string): Promise<User> {
 		const user = await this.usersService.getUserById(userId);
 
 		if (!user) {
