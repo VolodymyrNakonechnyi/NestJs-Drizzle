@@ -3,15 +3,18 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
-import { hashPassword } from '../../common/utils/hash.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersRepository } from './users.repository';
 import { User } from '../drizzle/schema/users.schema';
 import { UUID } from 'crypto';
+import { HashingService } from '../crypto/services/hashing.service';
 
 @Injectable()
 export class UsersService {
-	constructor(private readonly usersRepository: UsersRepository) {}
+	constructor(
+		private readonly usersRepository: UsersRepository,
+		private readonly hashingService: HashingService,
+	) {}
 
 	async createUser(createUser: CreateUserDto): Promise<User> {
 		const existingUserByEmail = await this.findOneByEmail(createUser.email);
@@ -26,7 +29,9 @@ export class UsersService {
 			throw new ConflictException('User with this username exists');
 		}
 
-		const hashedPassword = await hashPassword(createUser.password);
+		const hashedPassword = await this.hashingService.hash(
+			createUser.password,
+		);
 
 		const newUser = await this.usersRepository.create({
 			...createUser,
@@ -90,7 +95,7 @@ export class UsersService {
 			throw new NotFoundException('User not found');
 		}
 
-		const hashedPassword = await hashPassword(newPassword);
+		const hashedPassword = await this.hashingService.hash(newPassword);
 		return this.usersRepository.setPassword(userId, hashedPassword);
 	}
 }

@@ -8,11 +8,11 @@ import { UsersService } from '../users/users.service';
 import { type User } from '../drizzle/schema/users.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { verifyPassword } from '../../common/utils/hash.util';
 import { FastifyReply } from 'fastify';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { KeysService } from '../crypto/services/keys.service';
 import { UUID } from 'crypto';
+import { HashingService } from '../crypto/services/hashing.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +21,7 @@ export class AuthService {
 		private jwtService: JwtService,
 		private configService: ConfigService,
 		private keysService: KeysService,
+		private hashingService: HashingService,
 	) {}
 
 	async register(createUser: CreateUserDto) {
@@ -34,7 +35,10 @@ export class AuthService {
 			throw new NotFoundException('User not found');
 		}
 
-		const authenticated = await verifyPassword(pass, user.password);
+		const authenticated = await this.hashingService.compare(
+			pass,
+			user.password,
+		);
 
 		if (!authenticated) {
 			throw new UnauthorizedException('Invalid credentials');
