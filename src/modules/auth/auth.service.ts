@@ -14,8 +14,6 @@ import { UUID } from 'crypto';
 import { HashingService } from '../../shared/crypto/services/hashing.service';
 import { UsersRepository } from './users.repository';
 import { ConflictException } from '@nestjs/common/exceptions';
-import * as config from 'config';
-const appConfig = config.get('app');
 
 @Injectable()
 export class AuthService {
