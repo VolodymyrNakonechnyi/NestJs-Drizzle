@@ -25,6 +25,11 @@ export class AuthService {
 		private hashingService: HashingService,
 	) {}
 
+	/**
+	 * add new user
+	 * @param createUserDto
+	 * @return User
+	 */
 	async register(createUser: CreateUserDto) {
 		const existingUserByEmail = await this.usersRepository.findByEmail(
 			createUser.email,
@@ -51,6 +56,12 @@ export class AuthService {
 		return newUser;
 	}
 
+	/**
+	 * validate user
+	 * @param email
+	 * @param pass
+	 * @return User
+	 */
 	async validateUser(email: string, pass: string): Promise<any> {
 		const user = await this.usersRepository.findByEmail(email);
 
@@ -67,11 +78,16 @@ export class AuthService {
 			throw new UnauthorizedException('Invalid credentials');
 		}
 
-		const { password, ...result } = user;
-
-		return result;
+		return user;
 	}
 
+	/**
+	 * login user
+	 * @param user
+	 * @param reply
+	 * @param redirect
+	 * @return void
+	 * */
 	async login(user: User, reply: FastifyReply, redirect = false) {
 		const expiresAccessToken = new Date();
 		expiresAccessToken.setMilliseconds(
@@ -132,6 +148,12 @@ export class AuthService {
 		}
 	}
 
+	/**
+	 * refresh token
+	 * @param token
+	 * @param reply
+	 * @return void
+	 * */
 	async refreshToken(token: string, reply: FastifyReply) {
 		try {
 			const decoded = this.jwtService.verify(token, {
@@ -166,6 +188,12 @@ export class AuthService {
 		}
 	}
 
+	/**
+	 * validate refresh token
+	 * @param userId
+	 * @param token
+	 * @return User
+	 * */
 	async validateRefreshToken(userId: UUID, token: string): Promise<User> {
 		const user = await this.usersRepository.findById(userId);
 
