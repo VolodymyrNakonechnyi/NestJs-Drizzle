@@ -65,6 +65,9 @@ importers:
       commander:
         specifier: ^14.0.1
         version: 14.0.1
+      config:
+        specifier: ^4.1.1
+        version: 4.1.1
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.4
@@ -2041,6 +2044,10 @@ packages:
   concat-stream@2.0.0:
     resolution: {integrity: sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==}
     engines: {'0': node >= 6.0}
+
+  config@4.1.1:
+    resolution: {integrity: sha512-jljfwqNZ7QHwAW9Z9NDZdJARFiu5pjLqQO0K4ooY22iY/bIY78n0afI4ANEawfgQOxri0K/3oTayX8XIauWcLA==}
+    engines: {node: '>= 20.0.0'}
 
   consola@2.15.3:
     resolution: {integrity: sha512-9vAdYbHj6x2fLKC4+oPH0kFzY/orMZyG2Aj+kNylHxKGJ/Ed4dpNyAQYwJOdqO4zdM7XpVHmyejQDcQHrnuXbw==}
@@ -6456,6 +6463,10 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
       typedarray: 0.0.6
+
+  config@4.1.1:
+    dependencies:
+      json5: 2.2.3
 
   consola@2.15.3: {}
 

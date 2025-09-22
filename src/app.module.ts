@@ -8,7 +8,6 @@ import { PeopleModule } from './modules/people/people.module';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
 import { CryptoModule } from './shared/crypto/crypto.module';
 import { HttpExceptionFilter } from './common/filters/exception-filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
@@ -22,7 +21,6 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 		DrizzleModule,
 		PeopleModule,
 		AuthModule,
-		UsersModule,
 		CryptoModule,
 	],
 	controllers: [AppController],

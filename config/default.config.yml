@@ -1,0 +1,7 @@
+app:
+    name: 'Malina API'
+    version: 'v1.0.0'
+    description: 'Malina API'
+    appUrl: 'http://localhost:8080'
+    frontendUrl: 'http://localhost:3000'
+    sameSite: true

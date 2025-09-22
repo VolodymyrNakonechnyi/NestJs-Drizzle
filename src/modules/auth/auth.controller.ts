@@ -20,15 +20,15 @@ import {
 	ApiOkResponse,
 } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { CurrentUser } from './current.user.decorator';
+import { CurrentUser } from './decorators/current.user.decorator';
 import { type User } from '../../drizzle/schema/users.schema';
 import { type FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { MapResponseUser } from '../users/decorators/user-mapper.decorator';
+import { SerializeUser } from './serializer/user.serializer';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -102,7 +102,7 @@ export class AuthController {
 			},
 		},
 	})
-	@MapResponseUser()
+	@SerializeUser()
 	async register(
 		@Body() createUserDto: CreateUserDto,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -143,7 +143,7 @@ export class AuthController {
 			required: ['email', 'password'],
 		},
 	})
-	@MapResponseUser()
+	@SerializeUser()
 	async login(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -170,7 +170,7 @@ export class AuthController {
 		description: 'Tokens refreshed successfully. New tokens set in cookies',
 	})
 	@ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
-	@MapResponseUser()
+	@SerializeUser()
 	async refresh(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -219,7 +219,7 @@ export class AuthController {
 		description: 'Google authentication successful. Tokens set in cookies',
 	})
 	@ApiUnauthorizedResponse({ description: 'Google authentication error' })
-	@MapResponseUser()
+	@SerializeUser()
 	async googleCallback(
 		@CurrentUser() user: User,
 		@Res({ passthrough: true }) reply: FastifyReply,
@@ -243,7 +243,7 @@ export class AuthController {
 	})
 	@ApiOkResponse({ description: 'User information' })
 	@ApiUnauthorizedResponse({ description: 'User not authenticated' })
-	@MapResponseUser()
+	@SerializeUser()
 	async getMe(@CurrentUser() user: User) {
 		return {
 			message: 'User data retrieved successfully',

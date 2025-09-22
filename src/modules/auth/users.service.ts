@@ -16,43 +16,6 @@ export class UsersService {
 		private readonly hashingService: HashingService,
 	) {}
 
-	async createUser(createUser: CreateUserDto): Promise<User> {
-		const existingUserByEmail = await this.findOneByEmail(createUser.email);
-		if (existingUserByEmail) {
-			throw new ConflictException('User with this email exists');
-		}
-
-		const existingUserByUsername = await this.findOneByUsername(
-			createUser.username,
-		);
-		if (existingUserByUsername) {
-			throw new ConflictException('User with this username exists');
-		}
-
-		const hashedPassword = await this.hashingService.hash(
-			createUser.password,
-		);
-
-		const newUser = await this.usersRepository.create({
-			...createUser,
-			password: hashedPassword,
-		});
-
-		return newUser;
-	}
-
-	async findOneByEmail(email: string): Promise<User | null> {
-		return this.usersRepository.findByEmail(email);
-	}
-
-	async findOneByUsername(username: string): Promise<User | null> {
-		return this.usersRepository.findByUsername(username);
-	}
-
-	async getUserById(id: UUID): Promise<User | null> {
-		return this.usersRepository.findById(id);
-	}
-
 	async updateUser(userId: UUID, updateData: Partial<User>): Promise<User> {
 		const existingUser = await this.usersRepository.findById(userId);
 		if (!existingUser) {

@@ -4,20 +4,23 @@ import {
 	NotFoundException,
 	UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { type User } from '../../drizzle/schema/users.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { FastifyReply } from 'fastify';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { KeysService } from '../../shared/crypto/services/keys.service';
 import { UUID } from 'crypto';
 import { HashingService } from '../../shared/crypto/services/hashing.service';
+import { UsersRepository } from './users.repository';
+import { ConflictException } from '@nestjs/common/exceptions';
+import * as config from 'config';
+const appConfig = config.get('app');
 
 @Injectable()
 export class AuthService {
 	constructor(
-		private usersService: UsersService,
+		private usersRepository: UsersRepository,
 		private jwtService: JwtService,
 		private configService: ConfigService,
 		private keysService: KeysService,
@@ -25,11 +28,33 @@ export class AuthService {
 	) {}
 
 	async register(createUser: CreateUserDto) {
-		return await this.usersService.createUser(createUser);
+		const existingUserByEmail = await this.usersRepository.findByEmail(
+			createUser.email,
+		);
+		if (existingUserByEmail) {
+			throw new ConflictException('User with this email exists');
+		}
+
+		const existingUserByUsername =
+			await this.usersRepository.findByUsername(createUser.username);
+		if (existingUserByUsername) {
+			throw new ConflictException('User with this username exists');
+		}
+
+		const hashedPassword = await this.hashingService.hash(
+			createUser.password,
+		);
+
+		const newUser = await this.usersRepository.create({
+			...createUser,
+			password: hashedPassword,
+		});
+
+		return newUser;
 	}
 
 	async validateUser(email: string, pass: string): Promise<any> {
-		const user = await this.usersService.findOneByEmail(email);
+		const user = await this.usersRepository.findByEmail(email);
 
 		if (!user) {
 			throw new NotFoundException('User not found');
@@ -123,7 +148,7 @@ export class AuthService {
 				throw new UnauthorizedException('Refresh token expired');
 			}
 
-			const user = await this.usersService.findOneByEmail(
+			const user = await this.usersRepository.findByEmail(
 				decoded.email || decoded.username,
 			);
 
@@ -144,7 +169,7 @@ export class AuthService {
 	}
 
 	async validateRefreshToken(userId: UUID, token: string): Promise<User> {
-		const user = await this.usersService.getUserById(userId);
+		const user = await this.usersRepository.findById(userId);
 
 		if (!user) {
 			throw new NotFoundException('User not found');
