@@ -10,9 +10,16 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UsersRepository } from './users.repository';
+import { DrizzleModule } from '../../drizzle/drizzle.module';
 
 @Module({
-	imports: [JwtModule, ConfigModule, PassportModule, CryptoModule],
+	imports: [
+		JwtModule,
+		ConfigModule,
+		PassportModule,
+		CryptoModule,
+		DrizzleModule,
+	],
 	controllers: [AuthController],
 	providers: [
 		AuthService,
