@@ -3,23 +3,17 @@ import { type DrizzleDB } from '../../drizzle/types/drizzle';
 import { DRIZZLE } from '../../drizzle/drizzle.module';
 import { UUID } from 'crypto';
 import { eq } from 'drizzle-orm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '../../drizzle/schema/users.schema';
 import { users } from '../../drizzle/schema/users.schema';
+import { BaseRepository } from 'src/common/repository/base.repository';
+import { PublicUser } from './serializer/user.serializer';
 
 @Injectable()
-export class UsersRepository {
-	constructor(@Inject(DRIZZLE) private db: DrizzleDB) {}
+export class UsersRepository extends BaseRepository<User, PublicUser> {
+	protected table = users;
 
-	async findById(id: UUID): Promise<User | null> {
-		const [person] = await this.db
-			.select()
-			.from(users)
-			.where(eq(users.id, id))
-			.limit(1);
-
-		return person || null;
+	constructor(@Inject(DRIZZLE) db: DrizzleDB) {
+		super(db);
 	}
 
 	async findByEmail(email: string): Promise<User | null> {
@@ -38,31 +32,6 @@ export class UsersRepository {
 			.where(eq(users.username, username))
 			.limit(1);
 		return person || null;
-	}
-
-	async create(user: CreateUserDto): Promise<User> {
-		const [newUser] = await this.db
-			.insert(users)
-			.values({
-				...user,
-			})
-			.returning();
-		return newUser;
-	}
-
-	async update(userId: UUID, user: UpdateUserDto): Promise<User> {
-		const [updatedUser] = await this.db
-			.update(users)
-			.set({
-				...user,
-			})
-			.where(eq(users.id, userId))
-			.returning();
-		return updatedUser;
-	}
-
-	async delete(userId: UUID): Promise<void> {
-		await this.db.delete(users).where(eq(users.id, userId));
 	}
 
 	async verifyEmail(userId: UUID): Promise<User> {

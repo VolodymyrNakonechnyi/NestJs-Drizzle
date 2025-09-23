@@ -15,6 +15,7 @@ import { HashingService } from '../../shared/crypto/services/hashing.service';
 import { UsersRepository } from './users.repository';
 import { ConflictException } from '@nestjs/common/exceptions';
 import { LoginUserDto } from './dto/login-user.dto';
+import { PublicUser } from './serializer/user.serializer';
 
 @Injectable()
 export class AuthService {
@@ -193,7 +194,10 @@ export class AuthService {
 	 * @param token
 	 * @return User
 	 * */
-	async validateRefreshToken(userId: UUID, token: string): Promise<User> {
+	async validateRefreshToken(
+		userId: UUID,
+		token: string,
+	): Promise<PublicUser> {
 		const user = await this.usersRepository.findById(userId);
 
 		if (!user) {

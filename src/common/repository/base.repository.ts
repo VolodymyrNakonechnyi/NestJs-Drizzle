@@ -1,7 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { DRIZZLE } from '../../drizzle/drizzle.module';
 import { type DrizzleDB } from '../../drizzle/types/drizzle';
-import { PgTable } from 'drizzle-orm/pg-core';
 import { eq, sql } from 'drizzle-orm';
 import { type SQL } from 'drizzle-orm';
 import { type BaseTable } from './base.schema';
