@@ -21,14 +21,14 @@ import {
 } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './decorators/current.user.decorator';
-import { type User } from '../../drizzle/schema/users.schema';
 import { type FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { SerializeUser } from './serializer/user.serializer';
+import { type PublicUser, SerializeUser } from './serializer/user.serializer';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -145,7 +145,8 @@ export class AuthController {
 	})
 	@SerializeUser()
 	async login(
-		@CurrentUser() user: User,
+		@CurrentUser() user: PublicUser,
+		@Body() loginUserDto: LoginUserDto,
 		@Res({ passthrough: true }) reply: FastifyReply,
 	) {
 		await this.authService.login(user, reply);
@@ -172,7 +173,7 @@ export class AuthController {
 	@ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
 	@SerializeUser()
 	async refresh(
-		@CurrentUser() user: User,
+		@CurrentUser() user: PublicUser,
 		@Res({ passthrough: true }) reply: FastifyReply,
 	) {
 		await this.authService.login(user, reply);
@@ -221,7 +222,7 @@ export class AuthController {
 	@ApiUnauthorizedResponse({ description: 'Google authentication error' })
 	@SerializeUser()
 	async googleCallback(
-		@CurrentUser() user: User,
+		@CurrentUser() user: PublicUser,
 		@Res({ passthrough: true }) reply: FastifyReply,
 	) {
 		await this.authService.login(user, reply);
@@ -244,7 +245,7 @@ export class AuthController {
 	@ApiOkResponse({ description: 'User information' })
 	@ApiUnauthorizedResponse({ description: 'User not authenticated' })
 	@SerializeUser()
-	async getMe(@CurrentUser() user: User) {
+	async getMe(@CurrentUser() user: PublicUser) {
 		return {
 			message: 'User data retrieved successfully',
 			data: {

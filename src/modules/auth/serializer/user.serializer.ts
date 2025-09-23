@@ -50,7 +50,7 @@ export function SerializeUser() {
 				return result;
 			}
 
-			if (result.userId) {
+			if (result.id) {
 				return UserSerializer.serialize(result);
 			}
 

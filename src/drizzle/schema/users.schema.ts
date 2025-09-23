@@ -1,20 +1,15 @@
-import {
-	pgTable,
-	timestamp,
-	uuid,
-	varchar,
-	boolean,
-} from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, varchar, boolean } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
 } from 'drizzle-zod';
+import { baseSchema } from '../../common/repository/base.schema';
 import { z } from 'zod';
 
 export const users = pgTable('users', {
-	userId: uuid('user_id').primaryKey().defaultRandom().notNull(),
+	...baseSchema,
 	username: varchar('username', { length: 30 }).notNull().unique(),
 	password: varchar('password', { length: 255 }).notNull(),
 	firstName: varchar('first_name', { length: 30 }),
@@ -29,13 +24,6 @@ export const users = pgTable('users', {
 	})
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true })
-		.default(sql`CURRENT_TIMESTAMP`)
-		.notNull(),
-	updatedAt: timestamp('updated_at', { withTimezone: true })
-		.default(sql`CURRENT_TIMESTAMP`)
-		.notNull()
-		.$onUpdate(() => new Date()),
 });
 
 export type UserDB = typeof users.$inferSelect;
@@ -50,7 +38,7 @@ export type User = z.infer<typeof userSelectSchema>;
 export const userInsertSchema = createInsertSchema(users, {
 	lastPasswordChange: z.date().optional(),
 }).omit({
-	userId: true,
+	id: true,
 	createdAt: true,
 	updatedAt: true,
 	lastPasswordChange: true,
@@ -63,7 +51,7 @@ export const userUpdateSchema = createUpdateSchema(users, {
 	lastPasswordChange: z.date().optional(),
 })
 	.omit({
-		userId: true,
+		id: true,
 		createdAt: true,
 		updatedAt: true,
 		lastPasswordChange: true,
@@ -73,4 +61,11 @@ export const userUpdateSchema = createUpdateSchema(users, {
 	.partial();
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
 
-export const userIdSchema = userSelectSchema.pick({ userId: true });
+export const userIdSchema = userSelectSchema.pick({ id: true });
+
+export const loginSchema = userSelectSchema
+	.pick({
+		email: true,
+		password: true,
+	})
+	.strict();

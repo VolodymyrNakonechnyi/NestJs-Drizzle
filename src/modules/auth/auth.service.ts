@@ -13,7 +13,12 @@ import { KeysService } from '../../shared/crypto/services/keys.service';
 import { UUID } from 'crypto';
 import { HashingService } from '../../shared/crypto/services/hashing.service';
 import { UsersRepository } from './users.repository';
-import { ConflictException } from '@nestjs/common/exceptions';
+import {
+	BadRequestException,
+	ConflictException,
+} from '@nestjs/common/exceptions';
+import { PublicUser } from './serializer/user.serializer';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +30,11 @@ export class AuthService {
 		private hashingService: HashingService,
 	) {}
 
+	/**
+	 * add new user
+	 * @param createUserDto
+	 * @return User
+	 */
 	async register(createUser: CreateUserDto) {
 		const existingUserByEmail = await this.usersRepository.findByEmail(
 			createUser.email,
@@ -39,40 +49,44 @@ export class AuthService {
 			throw new ConflictException('User with this username exists');
 		}
 
-		const hashedPassword = await this.hashingService.hash(
-			createUser.password,
-		);
-
 		const newUser = await this.usersRepository.create({
 			...createUser,
-			password: hashedPassword,
 		});
 
 		return newUser;
 	}
 
+	/**
+	 * validate user
+	 * @param email
+	 * @param pass
+	 * @return PublicUser
+	 */
 	async validateUser(email: string, pass: string): Promise<any> {
-		const user = await this.usersRepository.findByEmail(email);
+		const userLoginDto: LoginUserDto = { email, password: pass };
 
-		if (!user) {
-			throw new NotFoundException('User not found');
+		const [user, error, code] =
+			await this.usersRepository.login(userLoginDto);
+
+		if (error) {
+			if (code === 401) {
+				throw new UnauthorizedException(error);
+			}
+
+			throw new BadRequestException(error);
 		}
 
-		const authenticated = await this.hashingService.compare(
-			pass,
-			user.password,
-		);
-
-		if (!authenticated) {
-			throw new UnauthorizedException('Invalid credentials');
-		}
-
-		const { password, ...result } = user;
-
-		return result;
+		return user;
 	}
 
-	async login(user: User, reply: FastifyReply, redirect = false) {
+	/**
+	 * login user
+	 * @param user: PublicUser
+	 * @param reply: FastifyReply
+	 * @param redirect: boolean
+	 * @return void
+	 * */
+	async login(user: PublicUser, reply: FastifyReply, redirect = false) {
 		const expiresAccessToken = new Date();
 		expiresAccessToken.setMilliseconds(
 			expiresAccessToken.getMilliseconds() +
@@ -94,9 +108,7 @@ export class AuthService {
 		);
 
 		const payload = {
-			username: user.username,
 			email: user.email,
-			sub: user.userId,
 		};
 
 		const accessToken = this.jwtService.sign(payload, {
@@ -132,6 +144,12 @@ export class AuthService {
 		}
 	}
 
+	/**
+	 * refresh token
+	 * @param token
+	 * @param reply
+	 * @return void
+	 * */
 	async refreshToken(token: string, reply: FastifyReply) {
 		try {
 			const decoded = this.jwtService.verify(token, {
@@ -146,9 +164,7 @@ export class AuthService {
 				throw new UnauthorizedException('Refresh token expired');
 			}
 
-			const user = await this.usersRepository.findByEmail(
-				decoded.email || decoded.username,
-			);
+			const user = await this.usersRepository.findByEmail(decoded.email);
 
 			if (!user) {
 				throw new NotFoundException('User not found');
@@ -166,7 +182,16 @@ export class AuthService {
 		}
 	}
 
-	async validateRefreshToken(userId: UUID, token: string): Promise<User> {
+	/**
+	 * validate refresh token
+	 * @param userId
+	 * @param token
+	 * @return User
+	 * */
+	async validateRefreshToken(
+		userId: UUID,
+		token: string,
+	): Promise<PublicUser> {
 		const user = await this.usersRepository.findById(userId);
 
 		if (!user) {

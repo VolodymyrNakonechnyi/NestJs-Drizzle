@@ -2,99 +2,145 @@ import { Injectable, Inject } from '@nestjs/common';
 import { type DrizzleDB } from '../../drizzle/types/drizzle';
 import { DRIZZLE } from '../../drizzle/drizzle.module';
 import { UUID } from 'crypto';
-import { eq } from 'drizzle-orm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { eq, and, gt, or } from 'drizzle-orm';
 import { User } from '../../drizzle/schema/users.schema';
 import { users } from '../../drizzle/schema/users.schema';
+import { BaseRepository } from 'src/common/repository/base.repository';
+import { PublicUser, UserSerializer } from './serializer/user.serializer';
+import { HashingService } from '../../shared/crypto/services/hashing.service';
+import { LoginUserDto } from './dto/login-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
-export class UsersRepository {
-	constructor(@Inject(DRIZZLE) private db: DrizzleDB) {}
+export class UsersRepository extends BaseRepository<User, PublicUser> {
+	protected table = users;
+	protected serializer = UserSerializer;
 
-	async findById(id: UUID): Promise<User | null> {
-		const [person] = await this.db
-			.select()
-			.from(users)
-			.where(eq(users.userId, id))
-			.limit(1);
-
-		return person || null;
+	constructor(
+		@Inject(DRIZZLE) db: DrizzleDB,
+		private readonly hashingService: HashingService,
+	) {
+		super(db);
 	}
 
-	async findByEmail(email: string): Promise<User | null> {
-		const [person] = await this.db
-			.select()
-			.from(users)
-			.where(eq(users.email, email))
-			.limit(1);
-		return person || null;
+	/**
+	 * Store new user
+	 * @param createUserDto
+	 * @param token
+	 */
+	async store(
+		createUserDto: CreateUserDto,
+		token: string,
+	): Promise<PublicUser> {
+		if (createUserDto.password) {
+			createUserDto.password = await this.hashingService.hash(
+				createUserDto.password,
+			);
+		}
+
+		return await this.create(createUserDto);
 	}
 
-	async findByUsername(username: string): Promise<User | null> {
-		const [person] = await this.db
-			.select()
-			.from(users)
-			.where(eq(users.username, username))
-			.limit(1);
-		return person || null;
+	/**
+	 * Login user
+	 * @param userLoginDto
+	 */
+	async login(
+		userLoginDto: LoginUserDto,
+	): Promise<[user: User | null, error: string | null, code: number | null]> {
+		const { email, password } = userLoginDto;
+
+		const user = await this.findWithCustomWhereRaw(
+			eq(users.email, email),
+		).then((users) => users[0] || null);
+
+		if (user && (await this.validatePassword(password, user.password))) {
+			return [user, null, null];
+		}
+
+		return [null, 'Invalid credentials', 401];
 	}
 
-	async create(user: CreateUserDto): Promise<User> {
-		const [newUser] = await this.db
-			.insert(users)
-			.values({
-				...user,
-			})
-			.returning();
-		return newUser;
+	/**
+	 * Find by email
+	 * @param email
+	 */
+	async findByEmail(email: string): Promise<PublicUser | null> {
+		return this.findByField('email', email);
 	}
 
-	async update(userId: UUID, user: UpdateUserDto): Promise<User> {
-		const [updatedUser] = await this.db
-			.update(users)
-			.set({
-				...user,
-			})
-			.where(eq(users.userId, userId))
-			.returning();
-		return updatedUser;
+	/**
+	 * Find by username
+	 * @param username
+	 */
+	async findByUsername(username: string): Promise<PublicUser | null> {
+		return this.findByField('username', username);
 	}
 
-	async delete(userId: UUID): Promise<void> {
-		await this.db.delete(users).where(eq(users.userId, userId));
+	/**
+	 * Verify email
+	 * @param userId
+	 */
+	async verifyEmail(userId: UUID): Promise<PublicUser | null> {
+		const updated = await this.updateRaw(userId, {
+			verifiedEmail: true,
+		});
+
+		return updated ? this.transform(updated) : null;
 	}
 
-	async verifyEmail(userId: UUID): Promise<User> {
-		const [updatedUser] = await this.db
-			.update(users)
-			.set({
-				verifiedEmail: true,
-			})
-			.where(eq(users.userId, userId))
-			.returning();
-		return updatedUser;
+	/**
+	 * Verify phone
+	 * @param userId
+	 */
+	async verifyPhone(userId: UUID): Promise<PublicUser | null> {
+		const updated = await this.update(userId, {
+			verifiedPhone: true,
+		});
+
+		return updated;
 	}
 
-	async verifyPhone(userId: UUID): Promise<User> {
-		const [updatedUser] = await this.db
-			.update(users)
-			.set({
-				verifiedPhone: true,
-			})
-			.where(eq(users.userId, userId))
-			.returning();
-		return updatedUser;
+	/**
+	 * Set password
+	 * @param userId
+	 * @param plainPassword
+	 */
+	async setPassword(
+		userId: UUID,
+		plainPassword: string,
+	): Promise<PublicUser | null> {
+		const hashedPassword = await this.hashingService.hash(plainPassword);
+
+		const updated = await this.updateRaw(userId, {
+			password: hashedPassword,
+			lastPasswordChange: new Date(),
+		});
+
+		return updated ? this.transform(updated) : null;
 	}
 
-	async setPassword(userId: UUID, hashedPassword: string): Promise<User> {
-		const [updatedUser] = await this.db
-			.update(users)
-			.set({
-				password: hashedPassword,
-			})
-			.where(eq(users.userId, userId))
-			.returning();
-		return updatedUser;
+	/**
+	 * Validate password
+	 * @param plainPassword
+	 * @param hashedPassword
+	 */
+	private async validatePassword(
+		plainPassword: string,
+		hashedPassword: string,
+	): Promise<boolean> {
+		if (!hashedPassword) {
+			return false;
+		}
+
+		return this.hashingService.compare(plainPassword, hashedPassword);
+	}
+
+	/**
+	 * Hash password
+	 * @param plainPassword
+	 */
+	async hashPassword(plainPassword: string): Promise<string> {
+		return this.hashingService.hash(plainPassword);
 	}
 }
