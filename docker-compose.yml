@@ -28,8 +28,9 @@ services:
             dockerfile: Dockerfile
         container_name: malina_app
         restart: unless-stopped
+        command: pnpm start
         environment:
-            NODE_ENV: production
+            NODE_ENV: development
             DATABASE_URL: postgres://postgres:postgres@postgres:5432/Malina_CORP_FOR_FUN
             PRIVATE_KEY: your_private_key_here
             PUBLIC_KEY: your_public_key_here
@@ -38,8 +39,8 @@ services:
             JWT_EXPIRATION_ACCESS_MS: 3600000
             JWT_EXPIRATION_REFRESH_MS: 604800000
             PORT: 3000
-            GOOGLE_CLIENT_ID: google_client_id_here
-            GOOGLE_CLIENT_SECRET: google_client_secret_here_haha
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
             GOOGLE_AUTH_REDIRECT_URI: http://localhost:3000/auth/google/redirect
         ports:
             - '3000:3000'
@@ -51,6 +52,15 @@ services:
         volumes:
             - ./logs:/app/logs
             - ./uploads:/app/uploads
+        develop:
+            watch:
+                - action: sync
+                  path: ./src
+                  target: /app/src
+                  ignore:
+                      - node_modules/
+                - action: rebuild
+                  path: package.json
         healthcheck:
             test:
                 [

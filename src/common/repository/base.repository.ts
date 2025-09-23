@@ -148,7 +148,6 @@ export abstract class BaseRepository<TEntity, TSerializer> {
 		return this.transformMany(entities as TEntity[]);
 	}
 
-	// ВНУТРІШНІ МЕТОДИ - ПОВЕРТАЮТЬ ПОВНІ ДАНІ (БЕЗ СЕРІАЛІЗАЦІЇ)
 	/**
 	 * Find entity by ID without transformation (for internal use)
 	 * @param id

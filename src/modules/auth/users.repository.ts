@@ -38,12 +38,11 @@ export class UsersRepository extends BaseRepository<User, PublicUser> {
 			);
 		}
 
-		const user = await this.createRaw(createUserDto);
-		return this.transform(user);
+		return await this.create(createUserDto);
 	}
 
 	/**
-	 * Login user - повертає повні дані для валідації
+	 * Login user
 	 * @param userLoginDto
 	 */
 	async login(
@@ -63,7 +62,7 @@ export class UsersRepository extends BaseRepository<User, PublicUser> {
 	}
 
 	/**
-	 * Find by email - повертає публічні дані
+	 * Find by email
 	 * @param email
 	 */
 	async findByEmail(email: string): Promise<PublicUser | null> {
@@ -71,7 +70,7 @@ export class UsersRepository extends BaseRepository<User, PublicUser> {
 	}
 
 	/**
-	 * Find by username - повертає публічні дані
+	 * Find by username
 	 * @param username
 	 */
 	async findByUsername(username: string): Promise<PublicUser | null> {
@@ -95,11 +94,11 @@ export class UsersRepository extends BaseRepository<User, PublicUser> {
 	 * @param userId
 	 */
 	async verifyPhone(userId: UUID): Promise<PublicUser | null> {
-		const updated = await this.updateRaw(userId, {
+		const updated = await this.update(userId, {
 			verifiedPhone: true,
 		});
 
-		return updated ? this.transform(updated) : null;
+		return updated;
 	}
 
 	/**
@@ -119,32 +118,6 @@ export class UsersRepository extends BaseRepository<User, PublicUser> {
 		});
 
 		return updated ? this.transform(updated) : null;
-	}
-
-	// ВНУТРІШНІ МЕТОДИ ДЛЯ АУТЕНТИФІКАЦІЇ (ПОВЕРТАЮТЬ ПОВНІ ДАНІ)
-
-	/**
-	 * Find by email for authentication - повертає повні дані
-	 * @param email
-	 */
-	async findByEmailForAuth(email: string): Promise<User | null> {
-		return this.findByFieldRaw('email', email);
-	}
-
-	/**
-	 * Find by username for authentication - повертає повні дані
-	 * @param username
-	 */
-	async findByUsernameForAuth(username: string): Promise<User | null> {
-		return this.findByFieldRaw('username', username);
-	}
-
-	/**
-	 * Find by ID for authentication - повертає повні дані
-	 * @param id
-	 */
-	async findByIdForAuth(id: UUID): Promise<User | null> {
-		return this.findByIdRaw(id);
 	}
 
 	/**

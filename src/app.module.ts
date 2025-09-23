@@ -11,7 +11,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CryptoModule } from './shared/crypto/crypto.module';
 import { HttpExceptionFilter } from './common/filters/exception-filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { RefreshTokenModule } from './shared/refresh-token/refresh-token/refresh-token.module';
 
 @Module({
 	imports: [
@@ -23,7 +22,6 @@ import { RefreshTokenModule } from './shared/refresh-token/refresh-token/refresh
 		PeopleModule,
 		AuthModule,
 		CryptoModule,
-		RefreshTokenModule,
 	],
 	controllers: [AppController],
 	providers: [

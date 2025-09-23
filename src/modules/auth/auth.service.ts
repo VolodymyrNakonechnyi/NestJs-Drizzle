@@ -13,9 +13,12 @@ import { KeysService } from '../../shared/crypto/services/keys.service';
 import { UUID } from 'crypto';
 import { HashingService } from '../../shared/crypto/services/hashing.service';
 import { UsersRepository } from './users.repository';
-import { ConflictException } from '@nestjs/common/exceptions';
-import { LoginUserDto } from './dto/login-user.dto';
+import {
+	BadRequestException,
+	ConflictException,
+} from '@nestjs/common/exceptions';
 import { PublicUser } from './serializer/user.serializer';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -57,23 +60,20 @@ export class AuthService {
 	 * validate user
 	 * @param email
 	 * @param pass
-	 * @return User
+	 * @return PublicUser
 	 */
 	async validateUser(email: string, pass: string): Promise<any> {
-		// Використовуємо ForAuth метод для отримання повних даних з паролем
-		const user = await this.usersRepository.findByEmailForAuth(email);
+		const userLoginDto: LoginUserDto = { email, password: pass };
 
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+		const [user, error, code] =
+			await this.usersRepository.login(userLoginDto);
 
-		const authenticated = await this.hashingService.compare(
-			pass,
-			user.password,
-		);
+		if (error) {
+			if (code === 401) {
+				throw new UnauthorizedException(error);
+			}
 
-		if (!authenticated) {
-			throw new UnauthorizedException('Invalid credentials');
+			throw new BadRequestException(error);
 		}
 
 		return user;
@@ -81,12 +81,12 @@ export class AuthService {
 
 	/**
 	 * login user
-	 * @param user: User
+	 * @param user: PublicUser
 	 * @param reply: FastifyReply
 	 * @param redirect: boolean
 	 * @return void
 	 * */
-	async login(user: User, reply: FastifyReply, redirect = false) {
+	async login(user: PublicUser, reply: FastifyReply, redirect = false) {
 		const expiresAccessToken = new Date();
 		expiresAccessToken.setMilliseconds(
 			expiresAccessToken.getMilliseconds() +
@@ -164,9 +164,7 @@ export class AuthService {
 				throw new UnauthorizedException('Refresh token expired');
 			}
 
-			const user = await this.usersRepository.findByEmailForAuth(
-				decoded.email || decoded.username,
-			);
+			const user = await this.usersRepository.findByEmail(decoded.email);
 
 			if (!user) {
 				throw new NotFoundException('User not found');
