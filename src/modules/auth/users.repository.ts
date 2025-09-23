@@ -16,7 +16,7 @@ export class UsersRepository {
 		const [person] = await this.db
 			.select()
 			.from(users)
-			.where(eq(users.userId, id))
+			.where(eq(users.id, id))
 			.limit(1);
 
 		return person || null;
@@ -56,13 +56,13 @@ export class UsersRepository {
 			.set({
 				...user,
 			})
-			.where(eq(users.userId, userId))
+			.where(eq(users.id, userId))
 			.returning();
 		return updatedUser;
 	}
 
 	async delete(userId: UUID): Promise<void> {
-		await this.db.delete(users).where(eq(users.userId, userId));
+		await this.db.delete(users).where(eq(users.id, userId));
 	}
 
 	async verifyEmail(userId: UUID): Promise<User> {
@@ -71,7 +71,7 @@ export class UsersRepository {
 			.set({
 				verifiedEmail: true,
 			})
-			.where(eq(users.userId, userId))
+			.where(eq(users.id, userId))
 			.returning();
 		return updatedUser;
 	}
@@ -82,7 +82,7 @@ export class UsersRepository {
 			.set({
 				verifiedPhone: true,
 			})
-			.where(eq(users.userId, userId))
+			.where(eq(users.id, userId))
 			.returning();
 		return updatedUser;
 	}
@@ -93,7 +93,7 @@ export class UsersRepository {
 			.set({
 				password: hashedPassword,
 			})
-			.where(eq(users.userId, userId))
+			.where(eq(users.id, userId))
 			.returning();
 		return updatedUser;
 	}
