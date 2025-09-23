@@ -6,72 +6,106 @@ import { type SQL } from 'drizzle-orm';
 import { type BaseTable } from './base.schema';
 import { UUID } from 'crypto';
 
-export abstract class BaseRepository<T, U> {
+export interface ISerializer<TInput, TOutput> {
+	serialize(data: TInput): TOutput;
+	serializeMany(data: TInput[]): TOutput[];
+}
+
+export abstract class BaseRepository<TEntity, TSerializer> {
 	protected abstract table: BaseTable;
+	protected abstract serializer: ISerializer<TEntity, TSerializer>;
 
 	constructor(@Inject(DRIZZLE) protected db: DrizzleDB) {}
 
-	async create(createDto: Partial<T>): Promise<U> {
+	/**
+	 * Transform single entity to public format
+	 * @param model
+	 */
+	transform(model: TEntity): TSerializer {
+		return this.serializer.serialize(model);
+	}
+
+	/**
+	 * Transform multiple entities to public format
+	 * @param models
+	 */
+	transformMany(models: TEntity[]): TSerializer[] {
+		return this.serializer.serializeMany(models);
+	}
+
+	async create(createDto: Partial<TEntity>): Promise<TSerializer> {
 		const [entity] = await this.db
 			.insert(this.table)
 			.values(createDto as any)
 			.returning();
 
-		return entity as U;
+		return this.transform(entity as TEntity);
 	}
 
-	async findAll(): Promise<U[]> {
-		return (await this.db.select().from(this.table)) as U[];
+	async findAll(): Promise<TSerializer[]> {
+		const entities = await this.db.select().from(this.table);
+		return this.transformMany(entities as TEntity[]);
 	}
 
-	async findById(id: number | UUID): Promise<U | null> {
+	async findById(id: number | UUID): Promise<TSerializer | null> {
 		const [entity] = await this.db
 			.select()
 			.from(this.table)
 			.where(eq(this.table.id, id))
 			.limit(1);
 
-		return (entity as U) || null;
+		return entity ? this.transform(entity as TEntity) : null;
 	}
 
-	async findByField(fieldName: keyof T, value: any): Promise<U | null> {
+	async findByField(
+		fieldName: keyof TEntity,
+		value: any,
+	): Promise<TSerializer | null> {
 		const [entity] = await this.db
 			.select()
 			.from(this.table)
 			.where(eq(this.table[fieldName as string], value))
 			.limit(1);
 
-		return (entity as U) || null;
+		return entity ? this.transform(entity as TEntity) : null;
 	}
 
-	async findManyByField(fieldName: keyof T, value: any): Promise<U[]> {
-		return (await this.db
+	async findManyByField(
+		fieldName: keyof TEntity,
+		value: any,
+	): Promise<TSerializer[]> {
+		const entities = await this.db
 			.select()
 			.from(this.table)
-			.where(eq(this.table[fieldName as string], value))) as U[];
+			.where(eq(this.table[fieldName as string], value));
+
+		return this.transformMany(entities as TEntity[]);
 	}
 
-	async update(id: number | UUID, updateDto: Partial<T>): Promise<U | null> {
+	async update(
+		id: number | UUID,
+		updateDto: Partial<TEntity>,
+	): Promise<TSerializer | null> {
 		const [updated] = await this.db
 			.update(this.table)
 			.set(updateDto as any)
 			.where(eq(this.table.id, id))
 			.returning();
 
-		return (updated as U) || null;
+		return updated ? this.transform(updated as TEntity) : null;
 	}
 
-	async delete(id: number | UUID): Promise<U | null> {
+	async delete(id: number | UUID): Promise<TSerializer | null> {
 		const [deleted] = await this.db
 			.delete(this.table)
 			.where(eq(this.table.id, id))
 			.returning();
 
-		return (deleted as U) || null;
+		return deleted ? this.transform(deleted as TEntity) : null;
 	}
 
 	async exists(id: number | UUID): Promise<boolean> {
-		const entity = await this.findById(id);
+		const entity = await this.findByIdRaw(id);
 		return entity !== null;
 	}
 
@@ -83,28 +117,130 @@ export abstract class BaseRepository<T, U> {
 		return result[0].count;
 	}
 
-	async findWithCustomWhere(whereClause: SQL): Promise<U[]> {
-		return (await this.db
+	async findWithCustomWhere(whereClause: SQL): Promise<TSerializer[]> {
+		const entities = await this.db
 			.select()
 			.from(this.table)
-			.where(whereClause)) as U[];
+			.where(whereClause);
+
+		return this.transformMany(entities as TEntity[]);
 	}
 
 	async updateWithCustomWhere(
 		whereClause: SQL,
-		updateDto: Partial<T>,
-	): Promise<U[]> {
-		return (await this.db
+		updateDto: Partial<TEntity>,
+	): Promise<TSerializer[]> {
+		const entities = await this.db
 			.update(this.table)
 			.set(updateDto as any)
 			.where(whereClause)
-			.returning()) as U[];
+			.returning();
+
+		return this.transformMany(entities as TEntity[]);
 	}
 
-	async deleteWithCustomWhere(whereClause: SQL): Promise<U[]> {
-		return (await this.db
+	async deleteWithCustomWhere(whereClause: SQL): Promise<TSerializer[]> {
+		const entities = await this.db
 			.delete(this.table)
 			.where(whereClause)
-			.returning()) as U[];
+			.returning();
+
+		return this.transformMany(entities as TEntity[]);
+	}
+
+	// ВНУТРІШНІ МЕТОДИ - ПОВЕРТАЮТЬ ПОВНІ ДАНІ (БЕЗ СЕРІАЛІЗАЦІЇ)
+	/**
+	 * Find entity by ID without transformation (for internal use)
+	 * @param id
+	 */
+	protected async findByIdRaw(id: number | UUID): Promise<TEntity | null> {
+		const [entity] = await this.db
+			.select()
+			.from(this.table)
+			.where(eq(this.table.id, id))
+			.limit(1);
+
+		return (entity as TEntity) || null;
+	}
+
+	/**
+	 * Find entity by field without transformation (for internal use)
+	 * @param fieldName
+	 * @param value
+	 */
+	protected async findByFieldRaw(
+		fieldName: keyof TEntity,
+		value: any,
+	): Promise<TEntity | null> {
+		const [entity] = await this.db
+			.select()
+			.from(this.table)
+			.where(eq(this.table[fieldName as string], value))
+			.limit(1);
+
+		return (entity as TEntity) || null;
+	}
+
+	/**
+	 * Find multiple entities by field without transformation (for internal use)
+	 * @param fieldName
+	 * @param value
+	 */
+	protected async findManyByFieldRaw(
+		fieldName: keyof TEntity,
+		value: any,
+	): Promise<TEntity[]> {
+		const entities = await this.db
+			.select()
+			.from(this.table)
+			.where(eq(this.table[fieldName as string], value));
+
+		return entities as TEntity[];
+	}
+
+	/**
+	 * Find entities with custom WHERE without transformation (for internal use)
+	 * @param whereClause
+	 */
+	protected async findWithCustomWhereRaw(
+		whereClause: SQL,
+	): Promise<TEntity[]> {
+		const entities = await this.db
+			.select()
+			.from(this.table)
+			.where(whereClause);
+
+		return entities as TEntity[];
+	}
+
+	/**
+	 * Create entity without transformation (for internal use)
+	 * @param createDto
+	 */
+	protected async createRaw(createDto: Partial<TEntity>): Promise<TEntity> {
+		const [entity] = await this.db
+			.insert(this.table)
+			.values(createDto as any)
+			.returning();
+
+		return entity as TEntity;
+	}
+
+	/**
+	 * Update entity without transformation (for internal use)
+	 * @param id
+	 * @param updateDto
+	 */
+	protected async updateRaw(
+		id: number | UUID,
+		updateDto: Partial<TEntity>,
+	): Promise<TEntity | null> {
+		const [updated] = await this.db
+			.update(this.table)
+			.set(updateDto as any)
+			.where(eq(this.table.id, id))
+			.returning();
+
+		return (updated as TEntity) || null;
 	}
 }

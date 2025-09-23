@@ -46,13 +46,8 @@ export class AuthService {
 			throw new ConflictException('User with this username exists');
 		}
 
-		const hashedPassword = await this.hashingService.hash(
-			createUser.password,
-		);
-
 		const newUser = await this.usersRepository.create({
 			...createUser,
-			password: hashedPassword,
 		});
 
 		return newUser;
@@ -65,7 +60,8 @@ export class AuthService {
 	 * @return User
 	 */
 	async validateUser(email: string, pass: string): Promise<any> {
-		const user = await this.usersRepository.findByEmail(email);
+		// Використовуємо ForAuth метод для отримання повних даних з паролем
+		const user = await this.usersRepository.findByEmailForAuth(email);
 
 		if (!user) {
 			throw new NotFoundException('User not found');
@@ -168,7 +164,7 @@ export class AuthService {
 				throw new UnauthorizedException('Refresh token expired');
 			}
 
-			const user = await this.usersRepository.findByEmail(
+			const user = await this.usersRepository.findByEmailForAuth(
 				decoded.email || decoded.username,
 			);
 
