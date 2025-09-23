@@ -1,6 +1,7 @@
 import { timestamp, uuid } from 'drizzle-orm/pg-core';
 import z from 'zod';
 import { sql } from 'drizzle-orm';
+import { PgTable, PgColumn } from 'drizzle-orm/pg-core';
 
 export const baseSchema = {
 	id: uuid('id').primaryKey().defaultRandom().notNull(),
@@ -14,3 +15,8 @@ export const baseSchema = {
 };
 
 export type BaseSchema = z.infer<typeof baseSchema>;
+export interface BaseTable extends PgTable {
+	id: PgColumn;
+	createdAt: PgColumn;
+	updatedAt: PgColumn;
+}

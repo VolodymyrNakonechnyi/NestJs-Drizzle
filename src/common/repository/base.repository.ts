@@ -2,12 +2,13 @@ import { Inject } from '@nestjs/common';
 import { DRIZZLE } from '../../drizzle/drizzle.module';
 import { type DrizzleDB } from '../../drizzle/types/drizzle';
 import { PgTable } from 'drizzle-orm/pg-core';
-import { eq, SQL } from 'drizzle-orm';
-import { BaseSchema } from './base.schema';
+import { eq, sql } from 'drizzle-orm';
+import { type SQL } from 'drizzle-orm';
+import { type BaseTable } from './base.schema';
 import { UUID } from 'crypto';
 
-export abstract class BaseRepository<T, U extends BaseSchema> {
-	protected abstract table: PgTable;
+export abstract class BaseRepository<T, U> {
+	protected abstract table: BaseTable;
 
 	constructor(@Inject(DRIZZLE) protected db: DrizzleDB) {}
 
@@ -75,7 +76,6 @@ export abstract class BaseRepository<T, U extends BaseSchema> {
 		return entity !== null;
 	}
 
-	// Додаткові корисні методи
 	async count(): Promise<number> {
 		const result = await this.db
 			.select({ count: sql<number>`count(*)` })
