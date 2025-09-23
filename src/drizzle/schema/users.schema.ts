@@ -5,7 +5,7 @@ import {
 	createSelectSchema,
 	createUpdateSchema,
 } from 'drizzle-zod';
-import { baseSchema } from '../base.schema';
+import { baseSchema } from '../../common/repository/base.schema';
 import { z } from 'zod';
 
 export const users = pgTable('users', {
@@ -38,7 +38,7 @@ export type User = z.infer<typeof userSelectSchema>;
 export const userInsertSchema = createInsertSchema(users, {
 	lastPasswordChange: z.date().optional(),
 }).omit({
-	userId: true,
+	id: true,
 	createdAt: true,
 	updatedAt: true,
 	lastPasswordChange: true,
@@ -62,3 +62,10 @@ export const userUpdateSchema = createUpdateSchema(users, {
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
 
 export const userIdSchema = userSelectSchema.pick({ id: true });
+
+export const loginSchema = userSelectSchema
+	.pick({
+		email: true,
+		password: true,
+	})
+	.strict();

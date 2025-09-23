@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HarvestModule } from './modules/harvest/harvest.module';
@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CryptoModule } from './shared/crypto/crypto.module';
 import { HttpExceptionFilter } from './common/filters/exception-filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { RefreshTokenModule } from './shared/refresh-token/refresh-token/refresh-token.module';
 
 @Module({
 	imports: [
@@ -22,6 +23,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 		PeopleModule,
 		AuthModule,
 		CryptoModule,
+		RefreshTokenModule,
 	],
 	controllers: [AppController],
 	providers: [

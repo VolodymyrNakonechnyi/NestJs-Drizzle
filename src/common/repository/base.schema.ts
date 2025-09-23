@@ -1,4 +1,5 @@
 import { timestamp, uuid } from 'drizzle-orm/pg-core';
+import z from 'zod';
 import { sql } from 'drizzle-orm';
 
 export const baseSchema = {
@@ -11,3 +12,5 @@ export const baseSchema = {
 		.notNull()
 		.$onUpdate(() => new Date()),
 };
+
+export type BaseSchema = z.infer<typeof baseSchema>;

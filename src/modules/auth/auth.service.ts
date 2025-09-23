@@ -14,6 +14,7 @@ import { UUID } from 'crypto';
 import { HashingService } from '../../shared/crypto/services/hashing.service';
 import { UsersRepository } from './users.repository';
 import { ConflictException } from '@nestjs/common/exceptions';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -83,9 +84,9 @@ export class AuthService {
 
 	/**
 	 * login user
-	 * @param user
-	 * @param reply
-	 * @param redirect
+	 * @param user: User
+	 * @param reply: FastifyReply
+	 * @param redirect: boolean
 	 * @return void
 	 * */
 	async login(user: User, reply: FastifyReply, redirect = false) {
@@ -110,9 +111,7 @@ export class AuthService {
 		);
 
 		const payload = {
-			username: user.username,
 			email: user.email,
-			sub: user.id,
 		};
 
 		const accessToken = this.jwtService.sign(payload, {

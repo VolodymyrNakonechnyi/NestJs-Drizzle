@@ -29,6 +29,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SerializeUser } from './serializer/user.serializer';
+import { L } from 'node_modules/@faker-js/faker/dist/airline-CLphikKp.cjs';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -146,6 +148,7 @@ export class AuthController {
 	@SerializeUser()
 	async login(
 		@CurrentUser() user: User,
+		@Body() loginUserDto: LoginUserDto,
 		@Res({ passthrough: true }) reply: FastifyReply,
 	) {
 		await this.authService.login(user, reply);
