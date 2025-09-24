@@ -4,7 +4,7 @@ import { HarvestController } from './harvest.controller';
 import { HarvestRepository } from './harvest.repository';
 
 @Module({
-  providers: [HarvestService, HarvestRepository],
-  controllers: [HarvestController],
+	providers: [HarvestService, HarvestRepository],
+	controllers: [HarvestController],
 })
 export class HarvestModule {}

@@ -2,20 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { AppModule } from './../../src/app.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersModule } from 'src/modules/users/users.module';
 import { AuthController } from 'src/modules/auth/auth.controller';
-import { UsersController } from 'src/modules/users/users.controller';
 
 describe('AuthController(e2e)', () => {
 	let app: INestApplication<App>;
-	const authUrl = 'api/v1/auth/';
 	beforeAll(async () => {
 		const moduleFixture: TestingModule = await Test.createTestingModule({
-			imports: [AppModule, AuthModule, JwtModule, UsersModule],
-			controllers: [AuthController, UsersController],
+			imports: [AppModule, AuthModule, JwtModule],
+			controllers: [AuthController],
 		}).compile();
 
 		app = moduleFixture.createNestApplication();
