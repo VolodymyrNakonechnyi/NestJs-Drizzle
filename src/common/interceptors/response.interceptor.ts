@@ -4,6 +4,7 @@ import {
 	ExecutionContext,
 	CallHandler,
 } from '@nestjs/common';
+import { FastifyReply } from 'fastify';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -22,7 +23,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
 		next: CallHandler,
 	): Observable<Response<T>> {
 		const httpContext = context.switchToHttp();
-		const response = httpContext.getResponse();
+		const response = httpContext.getResponse() as FastifyReply;
 
 		return next.handle().pipe(
 			map((data) => ({
